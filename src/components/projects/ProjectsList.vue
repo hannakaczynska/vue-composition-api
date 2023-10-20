@@ -21,52 +21,38 @@
 </template>
 
 <script>
-import { ref, computed, watch, toRefs } from 'vue';
-import ProjectItem from './ProjectItem.vue';
+import useSearch from "../../hooks/search.js";
+
+import { computed, watch, toRefs } from "vue";
+import ProjectItem from "./ProjectItem.vue";
 
 export default {
   components: {
     ProjectItem,
   },
-  props: ['user'],
+  props: ["user"],
   setup(props) {
-    const enteredSearchTerm = ref('');
-    const activeSearchTerm = ref('');
+    const { user } = toRefs(props);
+    // const projects = computed(() => props.user ? props.user.projects : []);
 
-    console.log(enteredSearchTerm.value)
+    const projects = computed(() => {
+      return user.value ? user.value.projects : [];
+    });
+
+    const { enteredSearchTerm, availableProjects, updateSearch } = useSearch(
+      projects,
+      "title"
+    );
 
     const hasProjects = computed(() => {
-      return props.user.projects && availableProjects.value.length > 0;
+      return user.value.projects && availableProjects.value.length > 0;
     });
 
-    const availableProjects = computed(() => {
-      if (activeSearchTerm.value) {
-        return props.user.projects.filter((prj) =>
-          prj.title.includes(activeSearchTerm.value)
-        );
-      }
-      return props.user.projects;
-    });
-
-    const updateSearch = (val) => {
-      enteredSearchTerm.value = val;
-    };
-
-    watch(enteredSearchTerm, (val) => {
-      setTimeout(() => {
-        if (val === enteredSearchTerm.value) {
-          activeSearchTerm.value = val;
-        }
-      }, 300);
-    });
-
-// const propsWithRefs = toRefs(props);
-// const user = propsWithRefs.user;
-
-const { user } = toRefs(props);
+    // const propsWithRefs = toRefs(props);
+    // const user = propsWithRefs.user;
 
     watch(user, () => {
-      enteredSearchTerm.value = '';
+      updateSearch('');
     });
 
     return { enteredSearchTerm, availableProjects, hasProjects, updateSearch };
